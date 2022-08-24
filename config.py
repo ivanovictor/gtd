@@ -18,7 +18,7 @@ BOARD_ID = environ.get('BOARD_ID')
 
 """Authorization"""
 LOGIN = environ.get('LOGIN')
-PASS = environ.getn('PASS')
+PASS = environ.get('PASS')
 
 """List of column id's"""
 BACKLOG_ID = environ.get('BACKLOG_ID')
