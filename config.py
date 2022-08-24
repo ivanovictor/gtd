@@ -16,6 +16,10 @@ DATABASE_NAME = environ.get('DATABASE_NAME')
 """Board name"""
 BOARD_ID = environ.get('BOARD_ID')
 
+"""Authorization"""
+LOGIN = environ.get('LOGIN')
+PASS = environ.getn('PASS')
+
 """List of column id's"""
 BACKLOG_ID = environ.get('BACKLOG_ID')
 CURRENT_TASKS_ID = environ.get('CURRENT_TASKS_ID')
