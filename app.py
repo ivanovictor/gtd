@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 import dash
+import dash_auth
 from dash import dcc
 from dash import html
 from dash import dash_table
@@ -24,10 +25,15 @@ from config import (
     DATABASE_PASSWORD,
     DATABASE_HOST,
     DATABASE_NAME,
-    DATABASE_PORT
+    DATABASE_PORT,
+    LOGIN,
+    PASS
 )
 
 from library import get_count_cards_in_column
+VALID_USERNAME_PASSWORD_PAIRS = {
+    LOGIN: PASS
+}
 
 """ READ DATA """
 
@@ -58,33 +64,90 @@ def get_data(sql_query):
         print('походу ошибка', error)
 
 
-sql_query_add_minus_remove_task = """select coalesce(movefromtrash, 0) as 
-movefromtrash, 0 as movetotrash, coalesce(addCard, 0) as addcard, coalesce(
-deleteintrash, 0) as deleteintrash, T.date as date, 'backlog' as "columns" 
-from ( select generate_series('2021-09-01', current_date, 
-'1 day'::interval)::date as date ) T left join ( select count(id) as 
-addCard, date(date) as date from trello.createcard where listname = 
-'Корзина' group by date(date) order by date ) T0 on T0.date = T.date left 
-join ( select count(id) movefromtrash, date(date) as date from 
-trello.cardmove where listbeforename = 'Корзина' group by date(date) order 
-by date ) T1 on T1.date = T.date left join ( select count(id) deleteintrash, 
-date(date) as date from trello.deletecard d where listname = 'Корзина' group 
-by date(date) order by date ) T2 on T2.date = T.date union all select 
-coalesce(movefromtrash, 0) as movefromtrash, coalesce(movetotrash, 
-0) as movetotrash, coalesce(addCard, 0) as addcard, coalesce(deleteintrash, 
-0) as deleteintrash, T.date as date, 'сurrent tasks' as "columns" from ( 
-select generate_series('2021-09-01', current_date, '1 day'::interval)::date 
-as date ) T left join ( select count(id) as addCard, date(date) from 
-trello.createcard where listid = '5fa291a201e844109fca5061' group by date(
-date) order by date ) T0 on T0.date = T.date left join ( select count(id) 
-movefromtrash, date(date) from trello.cardmove where listbeforeid = 
-'5fa291a201e844109fca5061' group by date(date) order by date ) T1 on date(
-T1.date) = date(T.date) left join ( select count(id) movetotrash, date(date) 
-from trello.cardmove where listafterid = '5fa291a201e844109fca5061' group by 
-date(date) order by date ) T2 on date(T2.date) = date(T.date) left join ( 
-select count(id) deleteintrash, date(date) from trello.deletecard d where 
-listid = '5fa291a201e844109fca5061' group by date(date) order by date ) T3 
-on date(T3.date) = date(T.date) """
+sql_query_add_minus_remove_task = """select coalesce(movefromtrash, 0) as movefromtrash,
+       0 as movetotrash,
+       coalesce(addcard, 0) as addcard,
+       coalesce(deleteintrash, 0) as deleteintrash,
+       t.date as date,
+       'backlog' as "columns"
+  from (
+        select generate_series('2021-09-01', current_date, '1 day'::interval)::date as date
+       ) t
+  left join (
+        select count(id) as addcard,
+               date(date) as date
+          from trello.createcard
+         where listname = 'корзина'
+         group by date(date)
+         order by date
+       ) t0
+    on t0.date = t.date
+  left
+join (
+        select count(id) movefromtrash,
+               date(date) as date
+          from trello.cardmove
+         where listbeforename = 'корзина'
+         group by date(date)
+         order
+by date
+       ) t1
+    on t1.date = t.date
+  left join (
+        select count(id) deleteintrash,
+               date(date) as date
+          from trello.deletecard d
+         where listname = 'корзина'
+         group
+by date(date)
+         order by date
+       ) t2
+    on t2.date = t.date
+union all select coalesce(movefromtrash, 0) as movefromtrash,
+       coalesce(movetotrash, 0) as movetotrash,
+       coalesce(addcard, 0) as addcard,
+       coalesce(deleteintrash, 0) as deleteintrash,
+       t.date as date,
+       'сurrent tasks' as "columns"
+  from (
+        select generate_series('2021-09-01', current_date, '1 day'::interval)::date as date
+       ) t
+  left join (
+        select count(id) as addcard,
+               date(date)
+          from trello.createcard
+         where listid = '5fa291a201e844109fca5061'
+         group by date(date)
+         order by date
+       ) t0
+    on t0.date = t.date
+  left join (
+        select count(id) movefromtrash,
+               date(date)
+          from trello.cardmove
+         where listbeforeid = '5fa291a201e844109fca5061'
+         group by date(date)
+         order by date
+       ) t1
+    on date(t1.date) = date(t.date)
+  left join (
+        select count(id) movetotrash,
+               date(date)
+          from trello.cardmove
+         where listafterid = '5fa291a201e844109fca5061'
+         group by date(date)
+         order by date
+       ) t2
+    on date(t2.date) = date(t.date)
+  left join (
+        select count(id) deleteintrash,
+               date(date)
+          from trello.deletecard d
+         where listid = '5fa291a201e844109fca5061'
+         group by date(date)
+         order by date
+       ) t3
+    on date(t3.date) = date(t.date)"""
 
 sql_query_trash = """
 
@@ -418,6 +481,10 @@ app = dash.Dash(__name__,
                 meta_tags=[{'name': 'viewport',
                             'content': 'width=device-width, initial-scale=1.0, maximum-scale=1.2, minimum-scale=0.5,'}]
                 )
+auth = dash_auth.BasicAuth(
+    app,
+    VALID_USERNAME_PASSWORD_PAIRS
+)
 
 card_icon = {
     "color": "white",
@@ -582,21 +649,22 @@ def update_graph_live(start_date, end_date, n):
     rating = pd.DataFrame(rating,
                           columns=['cardid', 'cardname', 'listid', 'listname',
                                    'date', 'link'])
+    #почему-то на проде не работает без приведения типа get_data к float
     rating['rank'] = np.where(rating['listid'] == '5fa291a201e844109fca505f',
                               round(len(rating[rating[
                                                    'listid'] == '5fa291a201e844109fca505f']) /
-                                    get_data(avg_add_trash_evday)[0][0] + (
+                                    float(get_data(avg_add_trash_evday)[0][0]) + (
                                             pd.Timestamp.now() - pd.to_datetime(
                                         rating['date'].dt.tz_localize(
                                             None))).dt.total_seconds() /
-                                    get_data(avgTimeCardTrash)[0][0], 2), None)
+                                    float(get_data(avgTimeCardTrash)[0][0]), 2), None)
     rating.loc[:, 'rank'] = np.where(
         rating['listid'] == '5fa291a201e844109fca5061', round(
             len(rating[rating['listid'] == '5fa291a201e844109fca5061']) /
-            get_data(avg_add_action_evday)[0][0] + (
+            float(get_data(avg_add_action_evday)[0][0]) + (
                     pd.Timestamp.now() - pd.to_datetime(
                 rating['date'].dt.tz_localize(None))).dt.total_seconds() /
-            get_data(avgTimeCardAction)[0][0], 2), rating['rank'])
+            float(get_data(avgTimeCardAction)[0][0]), 2), rating['rank'])
     rating = rating.apply(create_link, axis='columns')
 
     rating = rating.sort_values(by=['rank'], ascending=False)
