@@ -64,63 +64,64 @@ def get_data(sql_query):
         print('походу ошибка', error)
 
 
-sql_query_add_minus_remove_task = """select coalesce(movefromtrash, 0) as movefromtrash,
+sql_query_add_minus_remove_task = """   
+select coalesce(movefromtrash, 0) as movefromtrash,
        0 as movetotrash,
-       coalesce(addcard, 0) as addcard,
+       coalesce(addCard, 0) as addcard,
        coalesce(deleteintrash, 0) as deleteintrash,
-       t.date as date,
+       T.date as date,
        'backlog' as "columns"
   from (
         select generate_series('2021-09-01', current_date, '1 day'::interval)::date as date
-       ) t
+       ) T
   left join (
-        select count(id) as addcard,
+        select count(id) as addCard,
                date(date) as date
           from trello.createcard
-         where listname = 'корзина'
+         where listname = 'Корзина'
          group by date(date)
          order by date
-       ) t0
-    on t0.date = t.date
+       ) T0
+    on T0.date = T.date
   left
 join (
         select count(id) movefromtrash,
                date(date) as date
           from trello.cardmove
-         where listbeforename = 'корзина'
+         where listbeforename = 'Корзина'
          group by date(date)
          order
 by date
-       ) t1
-    on t1.date = t.date
+       ) T1
+    on T1.date = T.date
   left join (
         select count(id) deleteintrash,
                date(date) as date
           from trello.deletecard d
-         where listname = 'корзина'
+         where listname = 'Корзина'
          group
 by date(date)
          order by date
-       ) t2
-    on t2.date = t.date
+       ) T2
+    on T2.date = T.date
 union all select coalesce(movefromtrash, 0) as movefromtrash,
        coalesce(movetotrash, 0) as movetotrash,
-       coalesce(addcard, 0) as addcard,
+       coalesce(addCard, 0) as addcard,
        coalesce(deleteintrash, 0) as deleteintrash,
-       t.date as date,
+       T.date as date,
        'сurrent tasks' as "columns"
   from (
         select generate_series('2021-09-01', current_date, '1 day'::interval)::date as date
-       ) t
+       ) T
   left join (
-        select count(id) as addcard,
+        select count(id) as addCard,
                date(date)
           from trello.createcard
          where listid = '5fa291a201e844109fca5061'
          group by date(date)
          order by date
-       ) t0
-    on t0.date = t.date
+       ) T0
+    on T0.date = T.date
   left join (
         select count(id) movefromtrash,
                date(date)
@@ -128,8 +129,8 @@ union all select coalesce(movefromtrash, 0) as movefromtrash,
          where listbeforeid = '5fa291a201e844109fca5061'
          group by date(date)
          order by date
-       ) t1
-    on date(t1.date) = date(t.date)
+       ) T1
+    on date(T1.date) = date(T.date)
   left join (
         select count(id) movetotrash,
                date(date)
@@ -137,8 +138,8 @@ union all select coalesce(movefromtrash, 0) as movefromtrash,
          where listafterid = '5fa291a201e844109fca5061'
          group by date(date)
          order by date
-       ) t2
-    on date(t2.date) = date(t.date)
+       ) T2
+    on date(T2.date) = date(T.date)
   left join (
         select count(id) deleteintrash,
                date(date)
@@ -146,8 +147,8 @@ union all select coalesce(movefromtrash, 0) as movefromtrash,
          where listid = '5fa291a201e844109fca5061'
          group by date(date)
          order by date
-       ) t3
-    on date(t3.date) = date(t.date)"""
+       ) T3
+    on date(T3.date) = date(T.date)"""
 
 sql_query_trash = """
 
