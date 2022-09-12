@@ -74,7 +74,7 @@ def insert_activity(db):
                     db.rollback()
                     var_continue = False
                     break
-            elif entry["type"] == 'updatecard' \
+            elif entry["type"] == 'updateCard' \
                     and 'listbefore' in entry["data"] \
                     and 'listafter' in entry["data"]:
                 id = entry["id"]
@@ -104,7 +104,7 @@ def insert_activity(db):
                     db.rollback()
                     var_continue = False
                     break
-            elif entry["type"] == 'deletecard':
+            elif entry["type"] == 'deleteCard':
                 id = x["id"]
                 cardid = entry["data"]["card"]["id"]
                 listid = entry["data"]["list"]["id"]
