@@ -105,7 +105,7 @@ def insert_activity(db):
                     var_continue = False
                     break
             elif entry["type"] == 'deleteCard':
-                id = x["id"]
+                id = entry["id"]
                 cardid = entry["data"]["card"]["id"]
                 listid = entry["data"]["list"]["id"]
                 listname = entry["data"]["list"]["name"]
