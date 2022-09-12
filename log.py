@@ -7,8 +7,8 @@ def create_logger():
     """Create custom logger."""
     logger.remove()
     logger.add(
-        stdout,
-        level="DEBUG",
+        'out.log',
+        level="INFO",
     )
     return logger
 
