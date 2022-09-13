@@ -75,8 +75,8 @@ def insert_activity(db):
                     var_continue = False
                     break
             elif entry["type"] == 'updateCard' \
-                    and 'listbefore' in entry["data"] \
-                    and 'listafter' in entry["data"]:
+                    and 'listBefore' in entry["data"] \
+                    and 'listAfter' in entry["data"]:
                 id = entry["id"]
                 cardid = entry["data"]["card"]["id"]
                 cardname = entry["data"]["card"]["name"]
@@ -116,7 +116,7 @@ def insert_activity(db):
                 try:
                     db.insert_rows(insert_deletecard, listdeletecard)
                     logger.info(f"rows with card id {id}"
-                            f" inserted to cardmove table successfully")
+                            f" inserted to deletecard table successfully")
                 except NameError:
                     logger.error(f"row inserted to deletecard "
                                  f"with error: {NameError}")
